@@ -61,4 +61,29 @@ router.delete("/:id", authMiddleware, async (req, res) => {
   }
 });
 
+// ================= UPDATE RESUME =================
+router.put("/:id", authMiddleware, async (req, res) => {
+  try {
+    const updatedResume = await Resume.findOneAndUpdate(
+      {
+        _id: req.params.id,
+        userId: req.user.id,
+      },
+      req.body,
+      { new: true }
+    );
+
+    if (!updatedResume) {
+      return res.status(404).json({ error: "Resume not found" });
+    }
+
+    res.json(updatedResume);
+
+  } catch (error) {
+    console.error("Update Error:", error.message);
+    res.status(500).json({ error: "Failed to update resume" });
+  }
+});
+
+
 module.exports = router;

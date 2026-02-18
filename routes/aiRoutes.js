@@ -2,13 +2,14 @@ const express = require("express");
 const router = express.Router();
 const OpenAI = require("openai");
 const authMiddleware = require("../middleware/authMiddleware");
+const aiLimiter = require("../middleware/aiLimiter");
 
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-router.post("/generate-summary",authMiddleware, async (req, res) => {
+router.post("/generate-summary",authMiddleware,aiLimiter, async (req, res) => {
   try {
     console.log("Incoming body:", req.body);
 
@@ -42,6 +43,40 @@ router.post("/generate-summary",authMiddleware, async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+router.post("/improve-experience", authMiddleware,aiLimiter, async (req, res) => {
+  try {
+    const { description } = req.body;
+
+    if (!description) {
+      return res.status(400).json({ error: "Description required" });
+    }
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: "You are a professional resume writing assistant.",
+        },
+        {
+          role: "user",
+          content: `Rewrite this job experience professionally with strong action verbs and measurable impact: ${description}`,
+        },
+      ],
+      max_tokens: 250,
+    });
+
+    res.json({
+      improved: completion.choices[0].message.content,
+    });
+
+  } catch (error) {
+    console.error("AI Improve Error:", error.message);
+    res.status(500).json({ error: "AI failed" });
+  }
+});
+
 
 
 module.exports = router;
