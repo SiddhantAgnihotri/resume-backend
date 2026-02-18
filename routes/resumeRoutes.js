@@ -4,7 +4,7 @@ const Resume = require("../models/Resume");
 const authMiddleware = require("../middleware/authMiddleware");
 
 
-// Save Resume
+// ================= SAVE RESUME =================
 router.post("/save", authMiddleware, async (req, res) => {
   try {
     const resume = new Resume({
@@ -13,20 +13,51 @@ router.post("/save", authMiddleware, async (req, res) => {
     });
 
     await resume.save();
-    res.json({ message: "Resume saved successfully" });
+
+    res.status(200).json({
+      message: "Resume saved successfully",
+      resume,
+    });
+
   } catch (error) {
+    console.error("Save Resume Error:", error.message);
     res.status(500).json({ error: "Failed to save resume" });
   }
 });
 
 
-// Get All Resumes
-router.get("/", async (req, res) => {
+// ================= GET LOGGED-IN USER RESUMES =================
+router.get("/my", authMiddleware, async (req, res) => {
   try {
-    const resumes = await Resume.find().sort({ createdAt: -1 });
-    res.json(resumes);
+    const resumes = await Resume.find({ userId: req.user.id })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(resumes);
+
   } catch (error) {
+    console.error("Fetch Resume Error:", error.message);
     res.status(500).json({ error: "Failed to fetch resumes" });
+  }
+});
+
+
+// ================= DELETE RESUME =================
+router.delete("/:id", authMiddleware, async (req, res) => {
+  try {
+    const resume = await Resume.findOneAndDelete({
+      _id: req.params.id,
+      userId: req.user.id,
+    });
+
+    if (!resume) {
+      return res.status(404).json({ error: "Resume not found" });
+    }
+
+    res.status(200).json({ message: "Resume deleted successfully" });
+
+  } catch (error) {
+    console.error("Delete Resume Error:", error.message);
+    res.status(500).json({ error: "Failed to delete resume" });
   }
 });
 
