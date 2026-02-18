@@ -1,12 +1,14 @@
 const express = require("express");
 const router = express.Router();
 const OpenAI = require("openai");
+const authMiddleware = require("../middleware/authMiddleware");
+
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-router.post("/generate-summary", async (req, res) => {
+router.post("/generate-summary",authMiddleware, async (req, res) => {
   try {
     console.log("Incoming body:", req.body);
 
