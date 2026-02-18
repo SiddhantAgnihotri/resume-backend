@@ -1,10 +1,19 @@
 const mongoose = require("mongoose");
 
 const resumeSchema = new mongoose.Schema({
+  
+  // 🔐 Link resume to specific user
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+
   name: String,
   email: String,
   skills: String,
   summary: String,
+
   educationList: [
     {
       degree: String,
@@ -12,6 +21,7 @@ const resumeSchema = new mongoose.Schema({
       year: String,
     },
   ],
+
   experienceList: [
     {
       role: String,
@@ -20,6 +30,7 @@ const resumeSchema = new mongoose.Schema({
       description: String,
     },
   ],
+
   createdAt: {
     type: Date,
     default: Date.now,
