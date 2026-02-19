@@ -11,7 +11,7 @@ module.exports = async function (req, res, next) {
     user.aiUsageDate = new Date();
   }
 
-  if (user.aiUsage >= 10) {
+  if (user.aiUsage >= 100) {
     return res.status(403).json({
       error: "Daily AI limit reached (10 requests)",
     });
