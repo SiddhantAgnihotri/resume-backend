@@ -77,6 +77,108 @@ router.post("/improve-experience", authMiddleware,aiLimiter, async (req, res) =>
   }
 });
 
+router.post("/analyze-resume", authMiddleware, aiLimiter, async (req, res) => {
+  try {
+    const { name, skills, summary, experienceList } = req.body;
+
+    const prompt = `
+    Analyze this resume and give:
+    1. Overall score out of 100
+    2. Strengths (3 bullet points)
+    3. Weaknesses (3 bullet points)
+    4. Suggestions for improvement
+
+    Resume Data:
+    Name: ${name}
+    Skills: ${skills}
+    Summary: ${summary}
+    Experience: ${JSON.stringify(experienceList)}
+    `;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: "You are an ATS resume expert." },
+        { role: "user", content: prompt },
+      ],
+      max_tokens: 400,
+    });
+
+    res.json({
+      analysis: completion.choices[0].message.content,
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: "Analysis failed" });
+  }
+});
+
+
+router.post("/job-match", authMiddleware, aiLimiter, async (req, res) => {
+  try {
+    const { resumeData, jobDescription } = req.body;
+
+    const prompt = `
+    Compare this resume with the job description.
+    Give:
+    1. Match percentage
+    2. Missing keywords
+    3. Improvement suggestions
+
+    Resume: ${JSON.stringify(resumeData)}
+    Job Description: ${jobDescription}
+    `;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: "You are an ATS optimization expert." },
+        { role: "user", content: prompt },
+      ],
+      max_tokens: 400,
+    });
+
+    res.json({
+      matchAnalysis: completion.choices[0].message.content,
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: "Job match failed" });
+  }
+});
+
+
+router.post("/generate-cover-letter", authMiddleware, aiLimiter, async (req, res) => {
+  try {
+    const { resumeData, jobTitle, companyName } = req.body;
+
+    const prompt = `
+    Write a professional cover letter for:
+
+    Job Title: ${jobTitle}
+    Company: ${companyName}
+    Resume Data: ${JSON.stringify(resumeData)}
+
+    Keep it professional and impactful.
+    `;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: "You are a professional cover letter writer." },
+        { role: "user", content: prompt },
+      ],
+      max_tokens: 500,
+    });
+
+    res.json({
+      coverLetter: completion.choices[0].message.content,
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: "Cover letter failed" });
+  }
+});
 
 
 module.exports = router;

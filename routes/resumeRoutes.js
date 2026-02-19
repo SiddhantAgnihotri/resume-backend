@@ -86,4 +86,35 @@ router.put("/:id", authMiddleware, async (req, res) => {
 });
 
 
+// Rename
+router.put("/:id/rename", authMiddleware, async (req, res) => {
+  const { newName } = req.body;
+
+  const resume = await Resume.findOneAndUpdate(
+    { _id: req.params.id, userId: req.user.id },
+    { name: newName },
+    { new: true }
+  );
+
+  res.json(resume);
+});
+
+// Duplicate
+router.post("/:id/duplicate", authMiddleware, async (req, res) => {
+  const original = await Resume.findOne({
+    _id: req.params.id,
+    userId: req.user.id,
+  });
+
+  const copy = new Resume({
+    ...original.toObject(),
+    _id: undefined,
+    name: original.name + " (Copy)",
+  });
+
+  await copy.save();
+  res.json(copy);
+});
+
+
 module.exports = router;
